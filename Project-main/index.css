@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 100%;
+    
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 100%;
+    
+    --primary: 270 100% 62%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 134 100% 42%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 69%;
+    
+    --accent: 24 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 343 100% 61%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 270 100% 62%;
+    
+    --radius: 0.5rem;
+    
+    --chart-1: 270 100% 62%;
+    --chart-2: 134 100% 42%;
+    --chart-3: 24 100% 50%;
+    --chart-4: 343 100% 61%;
+    --chart-5: 211 100% 50%;
+  }
+ 
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-[#9747FF] bg-clip-text text-transparent;
+  }
+
+  .gradient-bg {
+    @apply bg-gradient-to-r from-primary to-[#9747FF];
+  }
+
+  /* For the shining effects */
+  .gradient-shine {
+    @apply relative overflow-hidden;
+  }
+
+  .gradient-shine::after {
+    content: '';
+    @apply absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-gradient-to-r from-transparent via-white/20 to-transparent rotate-[30deg];
+    transition: transform 0.6s;
+  }
+
+  .gradient-shine:hover::after {
+    transform: rotate(30deg) translate(100%, 100%);
+  }
+  
+  /* Circular navigation buttons */
+  .nav-circle {
+    @apply w-12 h-12 rounded-full flex items-center justify-center bg-card;
+  }
+
+  .nav-circle.large {
+    @apply w-16 h-16 gradient-bg -mt-6;
+  }
+
+  /* Circular profile avatar */
+  .avatar-circle {
+    @apply w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-white font-bold;
+  }
+}

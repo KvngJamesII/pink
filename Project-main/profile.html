@@ -1,0 +1,192 @@
+<div>
+  <header class="nav-header">
+    <button onclick="router.navigate('/')" class="back-button">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1 class="nav-title">Profile</h1>
+  </header>
+  
+  <main class="container">
+    <!-- User Info Card -->
+    <div class="card mb-6">
+      <div class="card-content flex flex-col items-center py-6">
+        <div id="user-avatar" class="rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4" style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));">
+          <!-- Initial will be added here -->
+        </div>
+        
+        <div class="text-center">
+          <h2 id="user-email" class="text-lg font-semibold">Loading...</h2>
+          <div class="text-muted text-sm mt-1">
+            User ID: <span id="user-referral-code" class="text-primary"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Referral Section -->
+    <div class="card mb-6">
+      <div class="card-content">
+        <h2 class="card-title mb-4">Referral Program</h2>
+        
+        <div id="referral-loading" class="text-center py-4">
+          <div class="loading-spinner" style="margin: 0 auto;"></div>
+          <p class="mt-2">Loading referral data...</p>
+        </div>
+        
+        <div id="referral-content" style="display: none;">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="bg-card rounded-lg p-3 text-center" style="background-color: rgba(255, 255, 255, 0.05);">
+              <div id="referral-count" class="text-2xl font-bold">0</div>
+              <div class="text-sm text-muted">Users Invited</div>
+            </div>
+            
+            <div class="bg-card rounded-lg p-3 text-center" style="background-color: rgba(255, 255, 255, 0.05);">
+              <div id="referral-earnings" class="text-2xl font-bold text-secondary">₦0</div>
+              <div class="text-sm text-muted">Earnings</div>
+            </div>
+          </div>
+          
+          <div class="bg-card rounded-lg p-4 mt-4" style="background-color: rgba(255, 255, 255, 0.05);">
+            <div class="text-muted mb-1">Your Referral Code</div>
+            <div class="flex justify-between items-center">
+              <div id="referral-code" class="font-bold text-lg">Loading...</div>
+              <button id="copy-referral-button" class="btn btn-outline" style="padding: 0.25rem 0.5rem;">
+                <i class="fas fa-copy mr-1"></i>
+                Copy
+              </button>
+            </div>
+          </div>
+          
+          <div class="text-sm text-muted mt-4 p-3 rounded-lg" style="background-color: rgba(99, 102, 241, 0.1);">
+            Invite your friends and earn 5% withdrawable bonus anytime they make a deposit.
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Log Out Button -->
+    <button id="logout-button" class="btn btn-destructive btn-block mb-4">
+      Log Out
+    </button>
+    
+    <!-- Admin Panel Link (only for admin users) -->
+    <button id="admin-button" class="btn btn-outline btn-block" style="display: none; border-color: var(--primary-color); color: var(--primary-color);">
+      Admin Panel
+    </button>
+  </main>
+</div>
+
+<script>
+  // Helper function to get avatar initials
+  function getInitial(email) {
+    return email.charAt(0).toUpperCase();
+  }
+  
+  // Referral module
+  const referralManager = (function() {
+    // Get referral count for a user
+    async function getReferralCount(userId) {
+      try {
+        const db = firebase.firestore();
+        const snapshot = await db.collection('referrals')
+          .where('referrerId', '==', userId)
+          .get();
+        
+        return snapshot.size;
+      } catch (error) {
+        console.error('Error getting referral count:', error);
+        return 0;
+      }
+    }
+    
+    // Get referral earnings for a user
+    async function getReferralEarnings(userId) {
+      try {
+        const db = firebase.firestore();
+        const snapshot = await db.collection('transactions')
+          .where('userId', '==', userId)
+          .where('type', '==', 'referral_bonus')
+          .get();
+        
+        let total = 0;
+        snapshot.forEach(doc => {
+          total += doc.data().amount || 0;
+        });
+        
+        return total;
+      } catch (error) {
+        console.error('Error getting referral earnings:', error);
+        return 0;
+      }
+    }
+    
+    // Return public API
+    return {
+      getReferralCount,
+      getReferralEarnings
+    };
+  })();
+
+  window.initPage = async function() {
+    const user = auth.getCurrentUser();
+    if (!user) {
+      router.navigate('/login');
+      return;
+    }
+    
+    // Set user information
+    document.getElementById('user-avatar').textContent = getInitial(user.email);
+    document.getElementById('user-email').textContent = user.email;
+    document.getElementById('user-referral-code').textContent = user.referralCode;
+    
+    // Set referral code
+    document.getElementById('referral-code').textContent = user.referralCode;
+    
+    // Show admin button if user is admin
+    if (user.isAdmin) {
+      const adminButton = document.getElementById('admin-button');
+      adminButton.style.display = 'block';
+      adminButton.addEventListener('click', () => {
+        router.navigate('/admin');
+      });
+    }
+    
+    // Logout button
+    document.getElementById('logout-button').addEventListener('click', async () => {
+      try {
+        await auth.logout();
+        router.navigate('/login');
+        showToast('success', 'Logged out', 'You have been successfully logged out');
+      } catch (error) {
+        showToast('error', 'Error', 'Failed to log out');
+      }
+    });
+    
+    // Copy referral code button
+    document.getElementById('copy-referral-button').addEventListener('click', () => {
+      navigator.clipboard.writeText(user.referralCode);
+      showToast('success', 'Copied!', 'Referral code copied to clipboard');
+    });
+    
+    // Load referral data
+    try {
+      const [referralCount, referralEarnings] = await Promise.all([
+        referralManager.getReferralCount(user.uid),
+        referralManager.getReferralEarnings(user.uid)
+      ]);
+      
+      // Hide loading
+      document.getElementById('referral-loading').style.display = 'none';
+      
+      // Show content
+      document.getElementById('referral-content').style.display = 'block';
+      
+      // Update values
+      document.getElementById('referral-count').textContent = referralCount;
+      document.getElementById('referral-earnings').textContent = `₦${referralEarnings}`;
+    } catch (error) {
+      console.error('Error loading referral data:', error);
+      showToast('error', 'Error', 'Failed to load referral data');
+    }
+  };
+</script>

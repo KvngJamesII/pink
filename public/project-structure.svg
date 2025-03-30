@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .title { font: bold 20px sans-serif; }
+    .folder { font: bold 16px sans-serif; fill: #4b5563; }
+    .file { font: 14px sans-serif; fill: #6b7280; }
+    .arrow { stroke: #9ca3af; stroke-width: 2; }
+    .box { fill: #f3f4f6; stroke: #d1d5db; stroke-width: 2; rx: 8; ry: 8; }
+    .highlight { fill: #e0e7ff; stroke: #818cf8; }
+    .header { font: bold 18px sans-serif; fill: #4338ca; }
+  </style>
+
+  <!-- Project Structure Title -->
+  <text x="400" y="30" text-anchor="middle" class="title">QuicReF Project Structure</text>
+
+  <!-- Main Box -->
+  <rect x="50" y="50" width="700" height="420" class="box" />
+
+  <!-- Client Section -->
+  <rect x="80" y="80" width="200" height="360" class="box highlight" />
+  <text x="180" y="110" text-anchor="middle" class="header">Client</text>
+  <text x="100" y="140" class="folder">📁 client/src</text>
+  <text x="120" y="170" class="file">- App.tsx</text>
+  <text x="120" y="195" class="file">- main.tsx</text>
+  <text x="120" y="220" class="file">- index.css</text>
+  <text x="100" y="250" class="folder">📁 client/src/components</text>
+  <text x="120" y="275" class="file">- ui components</text>
+  <text x="100" y="305" class="folder">📁 client/src/pages</text>
+  <text x="120" y="330" class="file">- Home.tsx</text>
+  <text x="120" y="355" class="file">- not-found.tsx</text>
+  <text x="120" y="380" class="file">- other pages...</text>
+
+  <!-- Server Section -->
+  <rect x="300" y="80" width="200" height="360" class="box highlight" />
+  <text x="400" y="110" text-anchor="middle" class="header">Server</text>
+  <text x="320" y="140" class="folder">📁 server</text>
+  <text x="340" y="170" class="file">- index.ts</text>
+  <text x="340" y="195" class="file">- routes.ts</text>
+  <text x="340" y="220" class="file">- storage.ts</text>
+  <text x="340" y="245" class="file">- vite.ts</text>
+
+  <!-- Shared Section -->
+  <rect x="520" y="80" width="200" height="150" class="box highlight" />
+  <text x="620" y="110" text-anchor="middle" class="header">Shared</text>
+  <text x="540" y="140" class="folder">📁 shared</text>
+  <text x="560" y="170" class="file">- schema.ts</text>
+
+  <!-- Config Section -->
+  <rect x="520" y="250" width="200" height="190" class="box highlight" />
+  <text x="620" y="280" text-anchor="middle" class="header">Config Files</text>
+  <text x="540" y="310" class="file">- vite.config.ts</text>
+  <text x="540" y="335" class="file">- netlify.toml</text>
+  <text x="540" y="360" class="file">- .nvmrc</text>
+  <text x="540" y="385" class="file">- drizzle.config.ts</text>
+  <text x="540" y="410" class="file">- package.json</text>
+
+  <!-- Arrows connecting sections -->
+  <line x1="280" y1="200" x2="300" y2="200" class="arrow" />
+  <line x1="500" y1="200" x2="520" y2="200" class="arrow" />
+  <line x1="500" y1="320" x2="520" y2="320" class="arrow" />
+  <line x1="280" y1="320" x2="300" y2="320" class="arrow" />
+</svg>

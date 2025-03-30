@@ -1,0 +1,967 @@
+<div class="page-content">
+  <div class="container" style="padding-top: 1rem;">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h1 class="card-title">Admin Dashboard</h1>
+        <p class="card-subtitle">Manage users and transactions</p>
+      </div>
+      <div class="card-content">
+        <div class="admin-tabs">
+          <button id="tab-users" class="admin-tab active">Users</button>
+          <button id="tab-deposits" class="admin-tab">Deposits</button>
+          <button id="tab-withdrawals" class="admin-tab">Withdrawals</button>
+        </div>
+        
+        <div id="panel-users" class="admin-panel">
+          <div id="users-loader" class="text-center py-4">
+            <div class="loading-spinner" style="margin: 0 auto;"></div>
+            <p class="mt-3">Loading users...</p>
+          </div>
+          <div id="users-list" class="hidden">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Wallet Balance</th>
+                  <th>Withdrawable</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- Users will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div id="panel-deposits" class="admin-panel hidden">
+          <div id="deposits-loader" class="text-center py-4">
+            <div class="loading-spinner" style="margin: 0 auto;"></div>
+            <p class="mt-3">Loading deposit requests...</p>
+          </div>
+          <div id="deposits-list" class="hidden">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="deposits-table-body">
+                <!-- Deposits will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div id="panel-withdrawals" class="admin-panel hidden">
+          <div id="withdrawals-loader" class="text-center py-4">
+            <div class="loading-spinner" style="margin: 0 auto;"></div>
+            <p class="mt-3">Loading withdrawal requests...</p>
+          </div>
+          <div id="withdrawals-list" class="hidden">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="withdrawals-table-body">
+                <!-- Withdrawals will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- User Balance Modal -->
+  <div id="balance-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Update User Balance</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-content">
+        <form id="balance-form">
+          <input type="hidden" id="balance-user-id">
+          <div class="form-group">
+            <label class="form-label">User Email</label>
+            <div id="balance-user-email" class="form-static"></div>
+          </div>
+          <div class="form-group">
+            <label for="balance-amount" class="form-label">Amount</label>
+            <input type="number" id="balance-amount" class="form-control" step="0.01" required>
+            <div class="form-help">Enter positive amount to add, negative to subtract</div>
+          </div>
+          <div class="form-group">
+            <label for="balance-type" class="form-label">Balance Type</label>
+            <select id="balance-type" class="form-control">
+              <option value="wallet">Wallet Balance</option>
+              <option value="withdrawable">Withdrawable Balance</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Update Balance</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Transaction Details Modal -->
+  <div id="transaction-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Transaction Details</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-content">
+        <div class="transaction-details">
+          <div class="detail-item">
+            <div class="detail-label">User:</div>
+            <div id="transaction-user" class="detail-value"></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Amount:</div>
+            <div id="transaction-amount" class="detail-value"></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Type:</div>
+            <div id="transaction-type" class="detail-value"></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Status:</div>
+            <div id="transaction-status" class="detail-value"></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Date:</div>
+            <div id="transaction-date" class="detail-value"></div>
+          </div>
+          <div id="transaction-payment-details">
+            <div class="detail-item">
+              <div class="detail-label">Payment Method:</div>
+              <div id="transaction-payment-name" class="detail-value"></div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Phone Number:</div>
+              <div id="transaction-phone" class="detail-value"></div>
+            </div>
+          </div>
+          <div id="transaction-receipt-container" class="detail-item hidden">
+            <div class="detail-label">Receipt:</div>
+            <div class="detail-value">
+              <img id="transaction-receipt" class="transaction-receipt" src="" alt="Receipt">
+            </div>
+          </div>
+          <div id="transaction-network-container" class="detail-item hidden">
+            <div class="detail-label">Network:</div>
+            <div id="transaction-network" class="detail-value"></div>
+          </div>
+          
+          <div id="transaction-actions" class="transaction-actions mt-4">
+            <button id="approve-transaction" class="btn btn-primary">Approve</button>
+            <button id="reject-transaction" class="btn btn-secondary">Reject</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .admin-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+  }
+  
+  .admin-tab {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #bbb;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  
+  .admin-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
+  
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .admin-table th, .admin-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .admin-table th {
+    font-weight: 600;
+    color: #ccc;
+  }
+  
+  .admin-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+  
+  .user-actions, .transaction-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .user-actions button, .transaction-actions button {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.875rem;
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .badge-success {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+  }
+  
+  .badge-warning {
+    background-color: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+  }
+  
+  .badge-error {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+  }
+  
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .modal-container {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1001;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .modal-header h3 {
+    margin: 0;
+    color: var(--text-color);
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  
+  .modal-close:hover {
+    color: var(--text-color);
+  }
+  
+  .modal-content {
+    padding: 1.5rem;
+  }
+  
+  .form-static {
+    padding: 0.75rem 0;
+    color: var(--text-color);
+  }
+  
+  .detail-item {
+    margin-bottom: 1rem;
+    display: flex;
+  }
+  
+  .detail-label {
+    font-weight: 600;
+    width: 40%;
+    color: #bbb;
+  }
+  
+  .detail-value {
+    width: 60%;
+  }
+  
+  .transaction-receipt {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+  }
+</style>
+
+<script>
+function initadminPage() {
+  // Add font awesome if not already added
+  if (!document.querySelector('link[href*="font-awesome"]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css';
+    document.head.appendChild(link);
+  }
+  
+  document.title = "Admin Dashboard - QuicReF";
+  
+  // Check if user is admin
+  const currentUser = Auth.getCurrentUser();
+  if (!currentUser || !currentUser.isAdmin) {
+    Router.navigate('/');
+    return;
+  }
+  
+  // Setup tab switching
+  setupTabs();
+  
+  // Load initial data - users tab
+  loadUsers();
+  
+  // Setup modal close buttons
+  document.querySelectorAll('.modal-close').forEach(button => {
+    button.addEventListener('click', closeAllModals);
+  });
+  
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', closeAllModals);
+  });
+  
+  // Setup balance form
+  document.getElementById('balance-form').addEventListener('submit', updateUserBalance);
+}
+
+function setupTabs() {
+  const tabButtons = document.querySelectorAll('.admin-tab');
+  const panels = document.querySelectorAll('.admin-panel');
+  
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all buttons
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      
+      // Add active class to clicked button
+      button.classList.add('active');
+      
+      // Hide all panels
+      panels.forEach(panel => panel.classList.add('hidden'));
+      
+      // Show selected panel
+      const panelId = button.id.replace('tab-', 'panel-');
+      document.getElementById(panelId).classList.remove('hidden');
+      
+      // Load data for selected tab
+      if (button.id === 'tab-users') {
+        loadUsers();
+      } else if (button.id === 'tab-deposits') {
+        loadDeposits();
+      } else if (button.id === 'tab-withdrawals') {
+        loadWithdrawals();
+      }
+    });
+  });
+}
+
+/* USERS SECTION */
+async function loadUsers() {
+  try {
+    const loaderElement = document.getElementById('users-loader');
+    const listElement = document.getElementById('users-list');
+    
+    // Show loader
+    loaderElement.classList.remove('hidden');
+    listElement.classList.add('hidden');
+    
+    // Call API to get users
+    const response = await fetch('/api/admin/users', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    const users = await response.json();
+    
+    // Hide loader
+    loaderElement.classList.add('hidden');
+    
+    // Render users
+    if (users.length > 0) {
+      listElement.classList.remove('hidden');
+      renderUsers(users);
+    } else {
+      loaderElement.innerHTML = `
+        <div style="font-size: 3rem; color: #666; margin-bottom: 1rem;">
+          <i class="fas fa-users"></i>
+        </div>
+        <p>No users found.</p>
+      `;
+    }
+  } catch (error) {
+    console.error('Error loading users:', error);
+    document.getElementById('users-loader').innerHTML = `
+      <div class="alert alert-error">
+        <p>Error loading users. Please try again.</p>
+        <p class="mt-2">${error.message}</p>
+      </div>
+      <button class="btn btn-primary btn-block mt-3" onclick="loadUsers()">
+        Retry
+      </button>
+    `;
+  }
+}
+
+function renderUsers(users) {
+  const tableBody = document.getElementById('users-table-body');
+  tableBody.innerHTML = '';
+  
+  users.forEach(user => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(user.email)}</td>
+      <td>$${user.walletBalance.toFixed(2)}</td>
+      <td>$${user.withdrawableBalance.toFixed(2)}</td>
+      <td>
+        ${user.isBanned 
+          ? '<span class="badge badge-error">Banned</span>' 
+          : '<span class="badge badge-success">Active</span>'}
+      </td>
+      <td>
+        <div class="user-actions">
+          <button class="btn btn-secondary btn-sm" onclick="openBalanceModal(${user.id}, '${escapeHtml(user.email)}')">
+            <i class="fas fa-money-bill-wave"></i> Balance
+          </button>
+          <button class="btn ${user.isBanned ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="toggleBanUser(${user.id}, ${user.isBanned})">
+            ${user.isBanned ? '<i class="fas fa-user-check"></i> Unban' : '<i class="fas fa-user-slash"></i> Ban'}
+          </button>
+        </div>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+}
+
+function openBalanceModal(userId, email) {
+  // Set user data in the modal
+  document.getElementById('balance-user-id').value = userId;
+  document.getElementById('balance-user-email').textContent = email;
+  document.getElementById('balance-amount').value = '';
+  
+  // Show modal
+  document.getElementById('balance-modal').classList.remove('hidden');
+}
+
+async function updateUserBalance(e) {
+  e.preventDefault();
+  
+  const userId = document.getElementById('balance-user-id').value;
+  const amount = parseFloat(document.getElementById('balance-amount').value);
+  const balanceType = document.getElementById('balance-type').value;
+  
+  if (isNaN(amount) || amount === 0) {
+    alert('Please enter a valid amount.');
+    return;
+  }
+  
+  try {
+    const button = document.querySelector('#balance-form button[type="submit"]');
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.innerHTML = '<div class="loading-spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
+    
+    // Call API to update balance
+    const response = await fetch('/api/admin/update-balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        userId, 
+        amount, 
+        balanceType
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    // Close modal and reload users
+    closeAllModals();
+    loadUsers();
+  } catch (error) {
+    console.error('Error updating balance:', error);
+    alert(`Error updating balance: ${error.message}`);
+    
+    // Reset button
+    const button = document.querySelector('#balance-form button[type="submit"]');
+    button.disabled = false;
+    button.textContent = 'Update Balance';
+  }
+}
+
+async function toggleBanUser(userId, isBanned) {
+  if (!confirm(`Are you sure you want to ${isBanned ? 'unban' : 'ban'} this user?`)) {
+    return;
+  }
+  
+  try {
+    // Call API to ban/unban user
+    const response = await fetch('/api/admin/ban-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        userId, 
+        isBanned: !isBanned
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    // Reload users
+    loadUsers();
+  } catch (error) {
+    console.error('Error toggling user ban status:', error);
+    alert(`Error: ${error.message}`);
+  }
+}
+
+/* DEPOSITS SECTION */
+async function loadDeposits() {
+  try {
+    const loaderElement = document.getElementById('deposits-loader');
+    const listElement = document.getElementById('deposits-list');
+    
+    // Show loader
+    loaderElement.classList.remove('hidden');
+    listElement.classList.add('hidden');
+    
+    // Call API to get deposit requests
+    const response = await fetch('/api/admin/deposit-requests', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    const deposits = await response.json();
+    
+    // Hide loader
+    loaderElement.classList.add('hidden');
+    
+    // Render deposits
+    if (deposits.length > 0) {
+      listElement.classList.remove('hidden');
+      renderDeposits(deposits);
+    } else {
+      loaderElement.innerHTML = `
+        <div style="font-size: 3rem; color: #666; margin-bottom: 1rem;">
+          <i class="fas fa-money-check-alt"></i>
+        </div>
+        <p>No deposit requests found.</p>
+      `;
+    }
+  } catch (error) {
+    console.error('Error loading deposits:', error);
+    document.getElementById('deposits-loader').innerHTML = `
+      <div class="alert alert-error">
+        <p>Error loading deposit requests. Please try again.</p>
+        <p class="mt-2">${error.message}</p>
+      </div>
+      <button class="btn btn-primary btn-block mt-3" onclick="loadDeposits()">
+        Retry
+      </button>
+    `;
+  }
+}
+
+function renderDeposits(deposits) {
+  const tableBody = document.getElementById('deposits-table-body');
+  tableBody.innerHTML = '';
+  
+  deposits.forEach(transaction => {
+    const tr = document.createElement('tr');
+    
+    const date = new Date(transaction.createdAt);
+    const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    
+    // Determine badge class based on status
+    let badgeClass = 'badge-warning';
+    if (transaction.status === 'completed') {
+      badgeClass = 'badge-success';
+    } else if (transaction.status === 'rejected') {
+      badgeClass = 'badge-error';
+    }
+    
+    tr.innerHTML = `
+      <td>${escapeHtml(transaction.userEmail)}</td>
+      <td>$${transaction.amount.toFixed(2)}</td>
+      <td>${escapeHtml(transaction.paymentName || 'N/A')}</td>
+      <td>${formattedDate}</td>
+      <td><span class="badge ${badgeClass}">${transaction.status}</span></td>
+      <td>
+        <div class="transaction-actions">
+          ${transaction.status === 'pending' ? `
+            <button class="btn btn-primary btn-sm" onclick="openTransactionModal(${transaction.id})">
+              <i class="fas fa-eye"></i> Review
+            </button>
+          ` : `
+            <button class="btn btn-secondary btn-sm" onclick="openTransactionModal(${transaction.id})">
+              <i class="fas fa-eye"></i> View
+            </button>
+          `}
+        </div>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+}
+
+/* WITHDRAWALS SECTION */
+async function loadWithdrawals() {
+  try {
+    const loaderElement = document.getElementById('withdrawals-loader');
+    const listElement = document.getElementById('withdrawals-list');
+    
+    // Show loader
+    loaderElement.classList.remove('hidden');
+    listElement.classList.add('hidden');
+    
+    // Call API to get withdrawal requests
+    const response = await fetch('/api/admin/withdrawal-requests', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    const withdrawals = await response.json();
+    
+    // Hide loader
+    loaderElement.classList.add('hidden');
+    
+    // Render withdrawals
+    if (withdrawals.length > 0) {
+      listElement.classList.remove('hidden');
+      renderWithdrawals(withdrawals);
+    } else {
+      loaderElement.innerHTML = `
+        <div style="font-size: 3rem; color: #666; margin-bottom: 1rem;">
+          <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <p>No withdrawal requests found.</p>
+      `;
+    }
+  } catch (error) {
+    console.error('Error loading withdrawals:', error);
+    document.getElementById('withdrawals-loader').innerHTML = `
+      <div class="alert alert-error">
+        <p>Error loading withdrawal requests. Please try again.</p>
+        <p class="mt-2">${error.message}</p>
+      </div>
+      <button class="btn btn-primary btn-block mt-3" onclick="loadWithdrawals()">
+        Retry
+      </button>
+    `;
+  }
+}
+
+function renderWithdrawals(withdrawals) {
+  const tableBody = document.getElementById('withdrawals-table-body');
+  tableBody.innerHTML = '';
+  
+  withdrawals.forEach(transaction => {
+    const tr = document.createElement('tr');
+    
+    const date = new Date(transaction.createdAt);
+    const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    
+    // Determine badge class based on status
+    let badgeClass = 'badge-warning';
+    if (transaction.status === 'completed') {
+      badgeClass = 'badge-success';
+    } else if (transaction.status === 'rejected') {
+      badgeClass = 'badge-error';
+    }
+    
+    tr.innerHTML = `
+      <td>${escapeHtml(transaction.userEmail)}</td>
+      <td>$${transaction.amount.toFixed(2)}</td>
+      <td>${escapeHtml(transaction.network || 'N/A')}</td>
+      <td>${formattedDate}</td>
+      <td><span class="badge ${badgeClass}">${transaction.status}</span></td>
+      <td>
+        <div class="transaction-actions">
+          ${transaction.status === 'pending' ? `
+            <button class="btn btn-primary btn-sm" onclick="openTransactionModal(${transaction.id})">
+              <i class="fas fa-eye"></i> Review
+            </button>
+          ` : `
+            <button class="btn btn-secondary btn-sm" onclick="openTransactionModal(${transaction.id})">
+              <i class="fas fa-eye"></i> View
+            </button>
+          `}
+        </div>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+}
+
+/* TRANSACTION DETAILS MODAL */
+async function openTransactionModal(transactionId) {
+  try {
+    // Get transaction details - for this demo, we'll use a mock API call
+    // In a real app, you would fetch the transaction from the server
+    const transaction = await getTransaction(transactionId);
+    
+    // Populate modal with transaction details
+    document.getElementById('transaction-user').textContent = transaction.userEmail;
+    document.getElementById('transaction-amount').textContent = `$${transaction.amount.toFixed(2)}`;
+    document.getElementById('transaction-type').textContent = transaction.type;
+    document.getElementById('transaction-status').textContent = transaction.status;
+    
+    const date = new Date(transaction.createdAt);
+    document.getElementById('transaction-date').textContent = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    
+    // Handle payment details
+    if (transaction.type === 'deposit') {
+      document.getElementById('transaction-payment-details').classList.remove('hidden');
+      document.getElementById('transaction-payment-name').textContent = transaction.paymentName || 'N/A';
+      document.getElementById('transaction-phone').textContent = transaction.phoneNumber || 'N/A';
+      
+      // Show receipt if available
+      if (transaction.paymentReceipt) {
+        document.getElementById('transaction-receipt-container').classList.remove('hidden');
+        document.getElementById('transaction-receipt').src = transaction.paymentReceipt;
+      } else {
+        document.getElementById('transaction-receipt-container').classList.add('hidden');
+      }
+      
+      document.getElementById('transaction-network-container').classList.add('hidden');
+    } else if (transaction.type === 'withdrawal') {
+      document.getElementById('transaction-payment-details').classList.remove('hidden');
+      document.getElementById('transaction-payment-name').textContent = 'Mobile Money';
+      document.getElementById('transaction-phone').textContent = transaction.phoneNumber || 'N/A';
+      
+      // Show network if available
+      if (transaction.network) {
+        document.getElementById('transaction-network-container').classList.remove('hidden');
+        document.getElementById('transaction-network').textContent = transaction.network;
+      } else {
+        document.getElementById('transaction-network-container').classList.add('hidden');
+      }
+      
+      document.getElementById('transaction-receipt-container').classList.add('hidden');
+    }
+    
+    // Show/hide action buttons based on status
+    const actionButtons = document.getElementById('transaction-actions');
+    if (transaction.status === 'pending') {
+      actionButtons.classList.remove('hidden');
+      
+      // Set up action buttons
+      const approveButton = document.getElementById('approve-transaction');
+      const rejectButton = document.getElementById('reject-transaction');
+      
+      // Remove previous event listeners
+      const approveClone = approveButton.cloneNode(true);
+      const rejectClone = rejectButton.cloneNode(true);
+      actionButtons.replaceChild(approveClone, approveButton);
+      actionButtons.replaceChild(rejectClone, rejectButton);
+      
+      // Add new event listeners
+      approveClone.addEventListener('click', () => handleTransaction(transaction.id, transaction.type, 'approve'));
+      rejectClone.addEventListener('click', () => handleTransaction(transaction.id, transaction.type, 'reject'));
+    } else {
+      actionButtons.classList.add('hidden');
+    }
+    
+    // Show modal
+    document.getElementById('transaction-modal').classList.remove('hidden');
+  } catch (error) {
+    console.error('Error opening transaction modal:', error);
+    alert(`Error: ${error.message}`);
+  }
+}
+
+async function getTransaction(transactionId) {
+  // In a real app, this would be an API call to get the transaction details
+  // For this demo, we'll look through the already loaded transactions
+  let transaction = null;
+  
+  // Check deposits
+  const depositsTable = document.getElementById('deposits-table-body');
+  if (depositsTable && !depositsTable.classList.contains('hidden')) {
+    // Get from deposits data
+    const deposits = Array.from(depositsTable.querySelectorAll('tr')).map((row, index) => {
+      const cells = row.querySelectorAll('td');
+      return {
+        id: parseInt(row.querySelector('button').getAttribute('onclick').match(/\d+/)[0]),
+        userEmail: cells[0].textContent,
+        amount: parseFloat(cells[1].textContent.replace('$', '')),
+        paymentName: cells[2].textContent,
+        createdAt: new Date(cells[3].textContent),
+        status: cells[4].textContent.trim(),
+        type: 'deposit'
+      };
+    });
+    
+    transaction = deposits.find(t => t.id === transactionId);
+  }
+  
+  // Check withdrawals if not found
+  if (!transaction) {
+    const withdrawalsTable = document.getElementById('withdrawals-table-body');
+    if (withdrawalsTable && !withdrawalsTable.classList.contains('hidden')) {
+      // Get from withdrawals data
+      const withdrawals = Array.from(withdrawalsTable.querySelectorAll('tr')).map((row, index) => {
+        const cells = row.querySelectorAll('td');
+        return {
+          id: parseInt(row.querySelector('button').getAttribute('onclick').match(/\d+/)[0]),
+          userEmail: cells[0].textContent,
+          amount: parseFloat(cells[1].textContent.replace('$', '')),
+          network: cells[2].textContent,
+          createdAt: new Date(cells[3].textContent),
+          status: cells[4].textContent.trim(),
+          type: 'withdrawal'
+        };
+      });
+      
+      transaction = withdrawals.find(t => t.id === transactionId);
+    }
+  }
+  
+  // If still not found, fetch from API
+  if (!transaction) {
+    // API call to get transaction details
+    // For this demo, we'll use a placeholder
+    const response = await fetch(`/api/transactions/${transactionId}`);
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    transaction = await response.json();
+  }
+  
+  return transaction;
+}
+
+async function handleTransaction(transactionId, type, action) {
+  if (!confirm(`Are you sure you want to ${action} this ${type}?`)) {
+    return;
+  }
+  
+  try {
+    let endpoint = '';
+    
+    if (type === 'deposit') {
+      endpoint = action === 'approve' ? '/api/admin/approve-deposit' : '/api/admin/reject-deposit';
+    } else if (type === 'withdrawal') {
+      endpoint = '/api/admin/process-withdrawal';
+    }
+    
+    // Call API to handle transaction
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        transactionId,
+        action: action
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    // Close modal and reload appropriate tab
+    closeAllModals();
+    
+    if (type === 'deposit') {
+      loadDeposits();
+    } else if (type === 'withdrawal') {
+      loadWithdrawals();
+    }
+  } catch (error) {
+    console.error(`Error ${action}ing ${type}:`, error);
+    alert(`Error: ${error.message}`);
+  }
+}
+
+function closeAllModals() {
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.classList.add('hidden');
+  });
+}
+
+// Helper to escape HTML to prevent XSS
+function escapeHtml(unsafe) {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+</script>
