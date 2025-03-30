@@ -26,6 +26,38 @@ This project is structured as follows:
 3. **client/public/_redirects**: Redirect rules for the Netlify deployment
 4. **.nvmrc**: Specifies the Node.js version for Netlify
 
+## Important Changes for Proper Deployment
+
+### Issue: "Loading QuicRef..." Page
+
+If your deployed application shows a blank page with only "Loading QuicRef..." text (as shown in the attached screenshot), follow these steps to fix it:
+
+1. **Implement All Required Pages**: Make sure all pages referenced in `App.tsx` are properly implemented including:
+   - `/pages/login.tsx`
+   - `/pages/signup.tsx`
+   - `/pages/home.tsx`
+   - `/pages/task-detail.tsx`
+   - `/pages/review.tsx`
+   - `/pages/create-task.tsx`
+   - `/pages/wallet.tsx`
+   - `/pages/profile.tsx`
+   - `/pages/admin.tsx`
+
+2. **Update AuthContext**: Modify the AuthContext to:
+   - Use `useLocation` from wouter to redirect unauthenticated users to the login page
+   - Remove the automatic dummy user creation to force users to log in
+   - Handle authentication properly with the API
+
+3. **Loading State**: Ensure that a proper loading state is shown while authentication is being determined
+
+4. **Redirects**: Make sure the `_redirects` file handles SPA routing correctly:
+```
+/api/*  /.netlify/functions/api/:splat  200
+/*      /index.html     200
+```
+
+5. **Testing**: After these changes, rebuild and redeploy your application to Netlify
+
 ## Deployment Steps
 
 ### 1. Push Code to GitHub
@@ -80,8 +112,10 @@ If your application uses environment variables (e.g., for database connections),
 After deploying, test your application:
 
 1. Visit the URL provided by Netlify
-2. Test all functionality to ensure it works as expected
-3. Check the Netlify logs if you encounter any issues
+2. Verify that you're redirected to the login page (not stuck on "Loading QuicRef...")
+3. Test the login functionality with a test user (for the demo, any credentials should work)
+4. Test all other functionality to ensure it works as expected
+5. Check the Netlify logs if you encounter any issues
 
 ## Additional Configuration
 
@@ -110,5 +144,7 @@ If you encounter issues with your deployment:
 2. Verify that all redirects are configured correctly in `netlify.toml` and `_redirects`
 3. Ensure environment variables are set correctly
 4. Test your application locally before deploying
+5. If you see "Loading QuicRef..." stuck on screen, check that all required pages are implemented
+6. Verify that the AuthContext is properly handling authentication and redirects
 
 For more help, refer to the [Netlify documentation](https://docs.netlify.com/).

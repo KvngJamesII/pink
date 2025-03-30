@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 
 // Define the User type based on your schema
@@ -29,25 +29,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [location, navigate] = useLocation();
 
-  // For Netlify deployment - set a dummy user to prevent loading state
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      // Only redirect to login if not already on login or signup pages
+      const isAuthPage = location === '/login' || location === '/signup';
+      if (!isAuthPage) {
+        navigate('/login');
+      }
+    }
+  }, [isLoading, user, location, navigate]);
+
+  // For Netlify deployment - set initial auth state
   useEffect(() => {
     // Check if we're in the Netlify environment
     const isNetlify = window.location.hostname.includes('netlify.app');
     
     if (isNetlify) {
-      // Set a dummy user for demo purposes on Netlify
-      setUser({
-        id: 1,
-        email: 'demo@example.com',
-        name: 'Demo User',
-        role: 'user',
-        walletBalance: 5000,
-        withdrawableBalance: 2500,
-        referralCode: 'QR123456',
-        isEmailVerified: true,
-        isBanned: false
-      });
+      // For demo purposes on Netlify, don't set a default user
+      // This will make the app show the login screen first
       setIsLoading(false);
     } else {
       // In development, try to fetch the user
@@ -75,10 +77,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<User> => {
     setIsLoading(true);
     try {
-      const res = await apiRequest('POST', '/api/auth/login', { email, password });
-      const userData = await res.json();
-      setUser(userData);
-      return userData;
+      // For Netlify demo, simulate a successful login
+      if (window.location.hostname.includes('netlify.app')) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Create a demo user
+        const demoUser = {
+          id: 1,
+          email: email,
+          name: email.split('@')[0],
+          role: 'user',
+          walletBalance: 5000,
+          withdrawableBalance: 2500,
+          referralCode: 'QR123456',
+          isEmailVerified: true,
+          isBanned: false
+        };
+        
+        setUser(demoUser);
+        return demoUser;
+      } else {
+        // Real API call for development
+        const res = await apiRequest('POST', '/api/auth/login', { email, password });
+        const userData = await res.json();
+        setUser(userData);
+        return userData;
+      }
     } catch (error) {
       throw error;
     } finally {
@@ -89,10 +114,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (userData: any): Promise<User> => {
     setIsLoading(true);
     try {
-      const res = await apiRequest('POST', '/api/auth/signup', userData);
-      const newUser = await res.json();
-      setUser(newUser);
-      return newUser;
+      // For Netlify demo, simulate a successful signup
+      if (window.location.hostname.includes('netlify.app')) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Create a demo user
+        const demoUser = {
+          id: 1,
+          email: userData.email,
+          name: userData.name,
+          role: 'user',
+          walletBalance: 5000,
+          withdrawableBalance: 2500,
+          referralCode: 'QR123456',
+          isEmailVerified: true,
+          isBanned: false
+        };
+        
+        setUser(demoUser);
+        return demoUser;
+      } else {
+        // Real API call for development
+        const res = await apiRequest('POST', '/api/auth/signup', userData);
+        const newUser = await res.json();
+        setUser(newUser);
+        return newUser;
+      }
     } catch (error) {
       throw error;
     } finally {
@@ -102,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    navigate('/login');
     // In a real implementation, you would also call an API to invalidate the session
   };
 
